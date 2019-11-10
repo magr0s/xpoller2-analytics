@@ -1,0 +1,19 @@
+{
+  "name": "xpoller2-analytics",
+  "productName": "xPoller2 Analytics",
+  "version": "1.0.0",
+  "description": "Manager Panel",
+  "main": "src/index.js",
+  "author": "Aleksandr Krokhmalnyi <magr0s.ak@gmail.com>",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "serve": "webpack-dev-server --open --mode development",
+    "build": "webpack --mode production"
+  },
+  "devDependencies": {
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.10",
+    "webpack-dev-server": "^3.9.0"
+  }
+}
