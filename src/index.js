@@ -1,6 +1,10 @@
 import './components/PageHeader'
 import './components/Dashboard'
 
+import axios from 'axios'
+
+Vue.prototype.$axios = axios
+
 new Vue({
   el: '#q-app',
 

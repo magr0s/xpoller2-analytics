@@ -1,47 +1,15 @@
-const POLLS_DB = [
-  {
-    id: 1,
-    title: 'Id qui sunt nostrud pariatur proident exercitation ad voluptate laboris culpa est consectetur est.',
-    answers: [
-      { id: 1, title: 'Minim commodo ut dolore laboris voluptate ipsum.', vote: 8 },
-      { id: 2, title: 'Magna est labore adipisicing do anim ea aliqua incididunt.', vote: 14 },
-      { id: 3, title: 'Minim ea duis exercitation ex..', vote: 26 }
-    ]
-  },
-  {
-    id: 2,
-    title: 'Dolore labore labore labore exercitation velit magna aute elit culpa voluptate.',
-    answers: [
-      { id: 1, title: 'Proident aliqua ullamco eiusmod et amet officia quis.', vote: 5 },
-      { id: 2, title: 'Irure consectetur laboris do duis nisi.', vote: 24 },
-      { id: 3, title: 'Consequat fugiat minim magna occaecat ipsum duis tempor.', vote: 16 },
-      { id: 4, title: 'Commodo dolor commodo incididunt laboris tempor adipisicing ullamco quis deserunt cupidatat proident quis veniam nisi.', vote: 8 }
-    ]
-  },
-  {
-    id: 3,
-    title: 'Qui dolor et duis quis incididunt esse commodo aliqua non ea dolor occaecat incididunt.',
-    answers: [
-      { id: 1, title: 'Esse pariatur sunt ullamco duis dolor reprehenderit magna ullamco.', vote: 5 },
-      { id: 2, title: 'Do deserunt sunt ullamco adipisicing aliquip commodo voluptate incididunt officia irure eu dolor irure.', vote: 24 },
-      { id: 3, title: 'Fugiat laboris anim quis duis commodo fugiat aute culpa labore reprehenderit adipisicing nulla dolore do.', vote: 16 },
-      { id: 4, title: 'Esse non magna nostrud tempor ipsum anim reprehenderit consequat.', vote: 8 }
-    ]
-  }
-]
-
 const QUESTION_COLUMNS = [
   {
     label: 'Опрос',
-    name: 'title',
+    name: 'question',
+    field: 'text',
     required: true,
-    field: row => (row.title),
     align: 'left',
     style: 'width: 35%'
   },
   {
     label: 'Результаты',
-    name: 'results',
+    name: 'result',
     align: 'left',
   }
 ]
@@ -49,14 +17,14 @@ const QUESTION_COLUMNS = [
 const ANSWER_COLUMNS = [
   {
     label: 'Ответ',
-    name: 'title',
-    field: 'title',
+    name: 'option',
+    field: 'option',
     align: 'left'
   },
   {
     label: 'Голоса',
-    name: 'vote',
-    field: 'vote',
+    name: 'votes',
+    field: 'votes',
     align: 'right',
     style: 'width: 75px'
   }
@@ -67,17 +35,38 @@ Vue.component('PollsPanel', {
     return {
       list: [],
       search: '',
-      highlightTop: false
+      highlightTop: false,
+      pagination: {
+        rowsPerPage: 0
+      },
+      loading: true
     }
   },
 
   mounted () {
-    this.update()
+    this.onRefresh()
   },
 
   methods: {
-    update () {
-      this.list = POLLS_DB
+    onRefresh () {
+      this.loading = true
+      try {
+        this.$axios.get(process.env.api, {
+          params: {
+            endpoint: 'polls'
+          }
+        })
+          .then(({ data }) => {
+            if (data.success) {
+              this.list = data.results
+            }
+          })
+          .finally(() => (this.loading = false))
+      } catch (e) {
+        throw e
+      }
+
+      // this.list = POLLS_DB
     },
 
     highlight (top, curr) {
@@ -99,16 +88,27 @@ Vue.component('PollsPanel', {
     return h(
       'QTable',
       {
+        class: 'full-height',
+
         props: {
           separator: 'cell',
           wrapCells: true,
           filter: this.search,
-          // hideBottom: true,
+          hideBottom: true,
+          virtualScroll: true,
           flat: true,
           tableHeaderClass: 'bg-grey-11',
+          tableStyle: 'height: calc(100% - 65px)',
+          rowPerPageOptions: [0],
+          pagination: this.pagination,
+          loading: this.loading,
 
           columns: QUESTION_COLUMNS,
           data: this.list
+        },
+
+        on: {
+          'update:pagination': value => (this.pagination = value)
         },
 
         scopedSlots: {
@@ -171,89 +171,59 @@ Vue.component('PollsPanel', {
             )
           },
 
-          // 'header-cell-results': (props) => {
-          //   const {
-          //     col: { label }
-          //   } = props
-
-          //   return h(
-          //     'QTh',
-          //     {
-          //       attrs: {
-          //         colspan: 2
-          //       },
-
-          //       props: {
-          //         props
-          //       }
-          //     },
-          //     label
-          //   )
-          // },
-
-          // 'body': (props) => {
-          //   const { row, cols } = props
-          //   const { answers } = row
-          //   const topAnswer = answers.reduce((prev, curr) => (prev.vote > curr.vote) ? prev : curr)
-
-          //   return answers.map((answer, i) => (
-          //     h(
-          //       'QTr',
-          //       [
-          //         !i && h(
-          //           'QTd',
-          //           {
-          //             class: 'text-weight-medium',
-
-          //             attrs: {
-          //               rowspan: answers.length
-          //             },
-
-          //             props: {
-          //               props: {
-          //                 col: cols[i],
-          //                 row
-          //               }
-          //             }
-          //           },
-          //           row.title
-          //         ),
-
-          //         h(
-          //           'QTd',
-          //           {
-          //             class: {
-          //               ...this.highlight(topAnswer, answer)
-          //             },
-
-          //             style: {
-          //               paddingLeft: '8px',
-          //               paddingRight: '8px',
-          //               borderLeft: '1px solid rgba(0,0,0,0.12)'
-          //             }
-          //           },
-          //           `${++i}. ${answer.title}`
-          //         ),
-
-          //         h(
-          //           'QTd',
-          //           {
-          //             class: {
-          //               'text-right': true,
-          //               ...this.highlight(topAnswer, answer)
-          //             },
-          //             style: "width: 75px",
-          //           },
-          //           answer.vote
-          //         )
-          //       ]
-          //     )
-          //   ))
-          // }
-          'body-cell-results': (props) => {
+          'body-cell-question': (props) => {
             const {
-              row: { answers }
+              row: { closed, text }
             } = props
+
+            return h(
+              'QTd',
+              {
+                class: 'text-weight-medium',
+
+                props: {
+                  props
+                }
+              },
+              [
+                h(
+                  'QIcon',
+                  {
+                    class: 'q-mr-xs',
+
+                    props: {
+                      name: (closed) ? 'lock' : 'lock_open',
+                      color: (closed) ? 'negative' : 'positive',
+                      size: '12px',
+                      round: true
+                    }
+                  },
+                  [
+                    h(
+                      'QTooltip',
+                      {
+                        props: {
+                          anchor: 'top middle',
+                          self: 'bottom middle',
+                          transitionShow: 'rotate',
+                          transitionHide: 'fade'
+                        }
+                      },
+                      (closed) ? 'Опрос закрыт' : 'Открыт для голосования'
+                    )
+                  ]
+                ),
+
+                text
+              ]
+            )
+          },
+
+          'body-cell-result': (props) => {
+            const {
+              row: { options }
+            } = props
+            const topOption = options.reduce((prev, curr) => (parseInt(prev.votes) > parseInt(curr.votes)) ? prev : curr)
 
             return h(
               'QTd',
@@ -276,23 +246,33 @@ Vue.component('PollsPanel', {
                       wrapCells: true,
 
                       columns: ANSWER_COLUMNS,
-                      data: answers
+                      data: options
                     },
 
                     scopedSlots: {
                       'body': (props) => {
+                        const { row, cols } = props
                         return h(
                           'QTr',
-                          [
-                            answers.map((answer, i) => (
-                              h(
-                                'QTd',
-                                {
-                                  style: {}
+                          {
+                            class: {
+                              ...this.highlight(topOption, row)
+                            }
+                          },
+                          cols.map(col => (
+                            h(
+                              'QTd',
+                              {
+                                props: {
+                                  props: {
+                                    col,
+                                    row
+                                  }
                                 }
-                              )
-                            ))
-                          ]
+                              },
+                              row[col.name]
+                            )
+                          ))
                         )
                       }
                     }

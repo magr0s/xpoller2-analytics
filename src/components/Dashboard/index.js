@@ -18,13 +18,13 @@ Vue.component('Dashboard', {
         h(
           'QCardSection',
           {
-            class: 'q-py-none bg-primary'
+            class: 'q-pa-none full-height'
           },
           [
             h(
               'QTabs',
               {
-                class: 'text-grey-3',
+                class: 'text-grey-3 bg-primary',
 
                 props: {
                   value: this.panel,
@@ -59,19 +59,12 @@ Vue.component('Dashboard', {
                   }
                 )
               ]
-            )
-          ]
-        ),
+            ),
 
-        h(
-          'QCardSection',
-          {
-            class: 'q-pa-none'
-          },
-          [
             h(
               'QTabPanels',
               {
+                style: 'height: calc(100% - 36px)',
                 props: {
                   value: this.panel
                 }
@@ -80,7 +73,7 @@ Vue.component('Dashboard', {
                 h(
                   'QTabPanel',
                   {
-                    class: 'q-pa-none',
+                    class: 'q-pa-none flex column',
 
                     props: {
                       name: "polls"
