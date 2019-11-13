@@ -73,7 +73,7 @@ Vue.component('Dashboard', {
                 h(
                   'QTabPanel',
                   {
-                    class: 'q-pa-none flex column',
+                    class: 'q-pa-none',
 
                     props: {
                       name: "polls"
