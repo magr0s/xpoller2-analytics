@@ -8,8 +8,17 @@ const USER_COLUMNS = [
   }
 ]
 
+const POLL_COLUMNS = [
+  {
+    name: 'poll',
+    field: 'name',
+    align: 'left'
+  }
+]
+
 const QUESTION_COLUMNS = [
   {
+    label: 'Вопросы',
     name: 'question',
     required: true,
     align: 'left'
@@ -23,7 +32,7 @@ Vue.component('UsersPanel', {
         let str = fullname
 
         if (city) {
-          str += ` г. ${city}`
+          str += ` - г. ${city}`
         }
 
         return str
@@ -54,7 +63,7 @@ Vue.component('UsersPanel', {
         scopedSlots: {
           body: (props) => {
             const { row, colsMap } = props
-            const { polls } = row
+            const polls = Object.values(row.polls)
 
             return [
               h(
@@ -94,82 +103,140 @@ Vue.component('UsersPanel', {
                       class: 'highlight--disable'
                     },
                     [
-                      (polls.length)
-                        ? h(
-                          'QTable',
-                          {
-                            props: {
-                              data: polls,
-                              columns: QUESTION_COLUMNS,
-                              hideHeader: true,
-                              hideBottom: true,
-                              dense: true,
-                              square: true,
-                              flat: true,
-                              separator: 'cell',
-                              tableStyle: {
-                                maxHeight: '240px'
-                              },
-                              virtualScroll: true
+                      h(
+                        'QTable',
+                        {
+                          props: {
+                            data: polls,
+                            columns: POLL_COLUMNS,
+                            hideBottom: true,
+                            hideHeader: true,
+                            dense: true,
+                            square: true,
+                            flat: true,
+                            separator: 'cell',
+                            tableStyle: {
+                              maxHeight: '480px'
                             },
+                            virtualScroll: true
+                          },
 
-                            scopedSlots: {
-                              body: (props) => {
-                                const { row, colsMap } = props
-                                const { question, option } = row
+                          scopedSlots: {
+                            body: (props) => {
+                              const { row, colsMap } = props
+                              const { name, questions } = row
 
-                                return [
-                                  h(
-                                    'QTr',
-                                    {
-                                      props: { props },
+                              return [
+                                h(
+                                  'QTr',
+                                  {
+                                    props: { props },
 
-                                      on: {
-                                        click: () => (props.expand = !props.expand)
-                                      }
-                                    },
-                                    [
-                                      h(
-                                        'QTd',
-                                        {
-                                          class: 'text-weight-medium highlight--disable bg-white cursor-pointer',
+                                    on: {
+                                      click: () => (props.expand = !props.expand)
+                                    }
+                                  },
+                                  [
+                                    h(
+                                      'QTd',
+                                      {
+                                        class: 'text-weight-medium highlight--disable bg-white cursor-pointer',
 
-                                          props: {
-                                            col: colsMap.question,
-                                            row
-                                          },
+                                        props: {
+                                          col: colsMap.poll,
+                                          row
                                         },
-                                        question.text
-                                      )
-                                    ]
-                                  ),
+                                      },
+                                      name
+                                    )
+                                  ]
+                                ),
 
-                                  props.expand && h(
-                                    'QTr',
-                                    {
-                                      class: 'bg-grey-4',
+                                props.expand && h(
+                                  'QTr',
+                                  {
+                                    class: 'bg-grey-3',
 
-                                      props: { props }
-                                    },
-                                    [
-                                      h(
-                                        'QTd',
-                                        option.option
-                                      )
-                                    ]
-                                  )
-                                ]
-                              }
+                                    props: { props }
+                                  },
+                                  [
+                                    h(
+                                      'QTd',
+                                      [
+                                        h(
+                                          'QTable',
+                                          {
+                                            props: {
+                                              data: questions,
+                                              columns: QUESTION_COLUMNS,
+                                              flat: true,
+                                              dense: true,
+                                              hideBottom: true,
+                                              square: true
+                                            },
+
+                                            scopedSlots: {
+                                              'body': (props) => {
+                                                const { row, colsMap } = props
+                                                const { text, option } = row
+                                                return [
+                                                  h(
+                                                    'QTr',
+                                                    {
+                                                      class: 'cursor-pointer',
+
+                                                      props: { props },
+
+                                                      on: {
+                                                        click: () => (props.expand = !props.expand)
+                                                      }
+                                                    },
+                                                    [
+                                                      h(
+                                                        'QTd',
+                                                        {
+                                                          props: {
+                                                            col: colsMap.question,
+                                                            row
+                                                          }
+                                                        },
+                                                        text
+                                                      )
+                                                    ]
+                                                  ),
+
+                                                  props.expand && h(
+                                                    'QTr',
+                                                    { class: 'bg-grey-4' },
+                                                    [
+                                                      h(
+                                                        'QTd',
+                                                        {
+                                                          style: "padding-left: 48px;",
+
+                                                          props: {
+                                                            col: colsMap.question,
+                                                            row
+                                                          }
+                                                        },
+                                                        option.option
+                                                      )
+                                                    ]
+                                                  )
+                                                ]
+                                              }
+                                            }
+                                          }
+                                        )
+                                      ]
+                                    )
+                                  ]
+                                )
+                              ]
                             }
                           }
-                        )
-                        : h(
-                          'span',
-                          {
-                            class: 'text-grey-8'
-                          },
-                          'Этот пользователь еще не отвечал на опросы'
-                        )
+                        }
+                      )
                     ]
                   )
                 ]

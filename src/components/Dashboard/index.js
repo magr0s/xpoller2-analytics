@@ -4,7 +4,7 @@ import './UsersPanel'
 Vue.component('Dashboard', {
   data () {
     return {
-      panel: 'polls'
+      panel: 'users'
     }
   },
 
