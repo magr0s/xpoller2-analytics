@@ -33,13 +33,23 @@ class xAnalyticsWebUsersGetdataProcessor extends modUserGetListProcessor
   {
     $array = parent::prepareRow($object);
 
+    if ($profile = $object->getOne('Profile')) {
+      $profileArray = $profile->toArray();
+
+      unset($profileArray['id']);
+
+      $array = array_merge($array, $profileArray);
+    }
+
     $polls = [];
 
     if ($collection = $this->modx->getCollection('xpAnswer', [
       "uid" => $array['id']
     ])) {
+      $id = 0;
       foreach ($collection as $answer) {
         $polls[] = [
+          'id'  => $id++,
           'question'  => $answer->getOne('Question')->toArray(),
           'option'  => $answer->getOne('Option')->toArray()
         ];

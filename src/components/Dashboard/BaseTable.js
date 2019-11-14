@@ -8,19 +8,34 @@ Vue.component('BaseTable', {
     offset: {
       type: Object,
       default: () => ([0, 0])
+    },
+
+    endpoint: {
+      type: String,
+      required: true
+    },
+
+    limit: {
+      type: Number,
+      default: () => (50)
+    },
+
+    title: {
+      type: String,
+      default: ''
     }
   },
 
   data () {
     return {
+      ...this.opts,
       data_: [],
-      rowsLimit: 10,
-
       filter: '',
       pagination: {
         rowsNumber: 0,
         rowsPerPage: 0
       },
+
       loading: true
     }
   },
@@ -33,38 +48,40 @@ Vue.component('BaseTable', {
 
   mounted () {
     this.fetch({
-      start: 0,
-      limit: this.rowsLimit,
+      page: 0,
       query: this.filter
     })
   },
 
   methods: {
-    async onRequest (props) {
+    onRequest (props) {
       const { filter } = props
 
-      await this.fetch({
-        start: 0,
-        limit: this.rowsLimit,
+      this.fetch({
+        page: 0,
         query: filter
       })
     },
 
-    fetch (props) {
+    async fetch (props) {
       this.loading = true
 
+      const { page, query, append = false } = props
+
       try {
-        this.$axios.get(process.env.api, {
+        await this.$axios.get(process.env.api, {
           params: {
-            endpoint: 'polls',
-            ...props
+            endpoint: this.endpoint,
+            start: page * this.limit,
+            limit: this.limit,
+            query
           }
         })
           .then(({ data }) => {
             if (data.success) {
               this.pagination.rowsNumber = data.total
 
-              this.data_.push(...data.results)
+              append ? this.data_.push(...data.results) : this.data_ = data.results
             }
           })
           .finally(() => (this.loading = false))
@@ -75,12 +92,23 @@ Vue.component('BaseTable', {
 
     onVScroll (props) {
       const {
-        direction
+        direction,
+        to,
+        index
       } = props
 
-      if (direction === 'increase') {
-        console.log(props)
-      }
+      const page = Math.ceil(to / this.limit)
+
+      !this.loading &&
+        direction === 'increase' &&
+        (to - index) < 15 &&
+        to < (this.pagination.rowsNumber - 1) &&
+        this.pagination.rowsNumber > this.data_.length &&
+        this.fetch({
+          page,
+          query: this.filter,
+          append: true
+        })
     }
   },
 
@@ -92,26 +120,25 @@ Vue.component('BaseTable', {
 
         props: {
           separator: 'cell',
-          filter: this.filter,
+          hideHeader: true,
           tableHeaderClass: 'bg-grey-11',
           tableStyle: {
-            height: this.height
+            maxHeight: this.height
           },
-          loading: this.loading,
-          virtualScroll: true,
-          // virtualScrollStickySizeStart: '48px',
-          rowsPerPageOptions: [0],
-          pagination: this.pagination,
           columns: [],
 
           ...this.opts,
 
+          loading: this.loading,
+          virtualScroll: true,
+          rowsPerPageOptions: [0],
+          pagination: this.pagination,
+          filter: this.filter,
           data: this.data_
         },
 
         on: {
           'update:pagination': (pagination) => {
-            console.log(pagination)
             this.pagination = pagination
           },
 
@@ -122,7 +149,7 @@ Vue.component('BaseTable', {
         },
 
         scopedSlots: {
-          'top': () => (
+          top: () => (
             h(
               'div',
               {
@@ -130,12 +157,31 @@ Vue.component('BaseTable', {
               },
               [
                 h(
+                  'div',
+                  {
+                    class: 'text-h5 text-weight-light'
+                  },
+                  this.title
+                ),
+
+                h(
+                  'QSeparator',
+                  {
+                    class: 'q-mx-md',
+
+                    props: {
+                      vertical: true
+                    }
+                  }
+                ),
+
+                h(
                   'QInput',
                   {
                     style: 'min-width: 380px',
 
                     attrs: {
-                      placeholder: 'Фильтр'
+                      placeholder: 'Быстрый поиск'
                     },
 
                     props: {
@@ -149,13 +195,26 @@ Vue.component('BaseTable', {
                     on: {
                       input: val => (this.filter = val)
                     }
-                  }
+                  },
+                  [
+                    h(
+                      'QIcon',
+                      {
+                        props: {
+                          name: 'search',
+                          size: '16px'
+                        },
+
+                        slot: 'prepend'
+                      }
+                    )
+                  ]
                 )
               ]
             )
           ),
 
-          ...this.scopedSlots
+          ...this.$scopedSlots
         }
       }
     )
