@@ -55,12 +55,39 @@ Vue.component('UsersPanel', {
 
           endpoint: 'users',
 
-          limit: 60,
-
-          title: 'Пользователи'
+          limit: 60
         },
 
         scopedSlots: {
+          top: () => (
+            h(
+              'div',
+              {
+                class: 'flex'
+              },
+              [
+                h(
+                  'div',
+                  {
+                    class: 'text-h5 text-weight-light'
+                  },
+                  'Пользователи'
+                ),
+
+                h(
+                  'QSeparator',
+                  {
+                    class: 'q-mx-md',
+
+                    props: {
+                      vertical: true
+                    }
+                  }
+                )
+              ]
+            )
+          ),
+
           body: (props) => {
             const { row, colsMap } = props
             const polls = Object.values(row.polls)

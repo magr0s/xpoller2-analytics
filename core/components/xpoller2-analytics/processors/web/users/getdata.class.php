@@ -9,8 +9,8 @@ class xAnalyticsWebUsersGetdataProcessor extends modUserGetListProcessor
   public function initialize()
   {
     $this->setDefaultProperties([
-      'limit' => 0,
-      'query'   => 'test'
+      'limit' => 0
+      // 'query'   => ''
     ]);
 
     return parent::initialize();
@@ -35,9 +35,9 @@ class xAnalyticsWebUsersGetdataProcessor extends modUserGetListProcessor
 
     $where['id:IN'] = $ids;
 
-    if ($query = $this->getProperty('query')) {
-        $where['username:LIKE'] = "{$query}%";
-    }
+    // if ($query = $this->getProperty('query')) {
+    //     $where['username:LIKE'] = "{$query}%";
+    // }
 
     $c->where($where);
 
@@ -75,11 +75,11 @@ class xAnalyticsWebUsersGetdataProcessor extends modUserGetListProcessor
             $poll->toArray()
           );
 
-          if (!isset($tmp['question'])) {
-            $tmp['question'] = [];
+          if (!isset($tmp['questions'])) {
+            $tmp['questions'] = [];
           }
 
-          array_push($tmp['question'], $question);
+          array_push($tmp['questions'], $question);
 
           $pollsList[$id] = $tmp;
         }
