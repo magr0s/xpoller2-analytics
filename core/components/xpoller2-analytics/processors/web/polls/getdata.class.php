@@ -2,7 +2,7 @@
 
 class xAnalyticsWebPollsGetdataProcessor extends modObjectGetListProcessor
 {
-  public $classKey = "xpQuestion";
+  public $classKey = "xpTest";
 	public $defaultSortField = "id";
   public $defaultSortDirection = "ASC";
 
@@ -21,7 +21,7 @@ class xAnalyticsWebPollsGetdataProcessor extends modObjectGetListProcessor
 
     if ($query = $this->getProperty('query')) {
         $c->where([
-          'text:LIKE' => "%{$query}%"
+          'name:LIKE' => "%{$query}%"
         ]);
     }
 
@@ -31,16 +31,30 @@ class xAnalyticsWebPollsGetdataProcessor extends modObjectGetListProcessor
   public function prepareRow(xPDOObject $object)
   {
     $array = parent::prepareRow($object);
+    $questionsList = [];
 
-    if ($collection = $object->getMany("Options")) {
-      $options = [];
+    if ($questions = $this->modx->getCollection('xpQuestion', array(
+      'tid' => $array['id'],
+    ))) {
+      foreach ($questions as $question) {
+         $optionsList = [];
 
-      foreach ($collection as $row) {
-        $options[] = $row->toArray();
+        if ($options = $question->getMany('Options')) {
+
+          foreach ($options as $option) {
+            $optionsList[] = $option->toArray();
+          }
+        }
+
+        $questionsList[] = array_merge(
+          $question->toArray(),
+          array(
+            'options' => $optionsList
+          ));
       }
     }
 
-    $array['options'] = $options;
+    $array['questions'] = $questionsList;
 
     return $array;
   }
