@@ -20,11 +20,26 @@ class xAnalyticsWebUsersGetdataProcessor extends modUserGetListProcessor
   {
     $c = parent::prepareQueryBeforeCount($c);
 
-    if ($query = $this->getProperty('query')) {
-        $c->where([
-          'username:LIKE' => "{$query}%"
-        ]);
+    $ids = [];
+
+    $q = $this->modx->newQuery('xpAnswer');
+    $q->groupBy('uid');
+
+    if ($answers = $this->modx->getCollection('xpAnswer', $q)) {
+      foreach ($answers as $answer) {
+        if (!in_array($answer->uid, $ids)) {
+          $ids[] = $answer->uid;
+        }
+      }
     }
+
+    $where['id:IN'] = $ids;
+
+    if ($query = $this->getProperty('query')) {
+        $where['username:LIKE'] = "{$query}%";
+    }
+
+    $c->where($where);
 
     return $c;
   }
@@ -41,22 +56,37 @@ class xAnalyticsWebUsersGetdataProcessor extends modUserGetListProcessor
       $array = array_merge($array, $profileArray);
     }
 
-    $polls = [];
+    $pollsList = [];
 
-    if ($collection = $this->modx->getCollection('xpAnswer', [
-      "uid" => $array['id']
-    ])) {
-      $id = 0;
-      foreach ($collection as $answer) {
-        $polls[] = [
-          'id'  => $id++,
-          'question'  => $answer->getOne('Question')->toArray(),
-          'option'  => $answer->getOne('Option')->toArray()
-        ];
+    if ($answers = $this->modx->getCollection('xpAnswer', array(
+      'uid' => $array['id']
+    ))) {
+      foreach ($answers as $answer) {
+        $question = $answer->getOne('Question')->toArray();
+        $question['option'] = $answer->getOne('Option')->toArray();
+
+        if ($poll = $this->modx->getObject('xpTest', array(
+          'id'  => $question['tid']
+        ))) {
+          $id = $poll->id;
+
+          $tmp = array_merge(
+            (isset($pollsList[$id])) ? $pollsList[$id] : [],
+            $poll->toArray()
+          );
+
+          if (!isset($tmp['question'])) {
+            $tmp['question'] = [];
+          }
+
+          array_push($tmp['question'], $question);
+
+          $pollsList[$id] = $tmp;
+        }
       }
     }
 
-    $array['polls'] = $polls;
+    $array['polls'] = $pollsList;
 
     return $array;
   }

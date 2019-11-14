@@ -1,17 +1,23 @@
 import './BaseTable'
 
-const QUESTION_COLUMNS = [
+const POLL_COLUMNS = [
   {
-    label: 'Опрос',
-    name: 'question',
-    field: 'text',
-    required: true,
-    align: 'left',
-    style: 'width: 35%'
+    name: 'poll',
+    field: 'name',
+    align: 'left'
   }
 ]
 
-const ANSWER_COLUMNS = [
+const QUESTION_COLUMNS = [
+  {
+    label: 'Вопросы',
+    name: 'question',
+    field: 'text',
+    align: 'left'
+  }
+]
+
+const OPTION_COLUMNS = [
   {
     label: 'Ответы',
     name: 'option',
@@ -35,7 +41,7 @@ Vue.component('PollsPanel', {
       {
         props: {
           opts: {
-            columns: QUESTION_COLUMNS
+            columns: POLL_COLUMNS
           },
 
           offset: ['65px', '50px'],
@@ -44,13 +50,13 @@ Vue.component('PollsPanel', {
 
           limit: 60,
 
-          title: 'Опросы'
+          title: 'Тесты'
         },
 
         scopedSlots: {
           body: (props) => {
             const { row, colsMap } = props
-            const { text, closed, options } = row
+            const { name, questions } = row
 
             return [
               h(
@@ -71,12 +77,12 @@ Vue.component('PollsPanel', {
                       class: 'text-weight-bold',
                       props: {
                         props: {
-                          col: colsMap.question,
+                          col: colsMap.poll,
                           row
                         }
                       }
                     },
-                    text
+                    name
                   )
                 ]
               ),
@@ -84,7 +90,7 @@ Vue.component('PollsPanel', {
               props.expand && h(
                 'QTr',
                 {
-                  class: 'bg-grey-1 no-pointer-events'
+                  class: 'bg-grey-1'
                 },
                 [
                   h(
@@ -94,12 +100,69 @@ Vue.component('PollsPanel', {
                         'QTable',
                         {
                           props: {
-                            columns: ANSWER_COLUMNS,
-                            data: options,
+                            columns: QUESTION_COLUMNS,
+                            data: questions,
                             dense: true,
                             square: true,
                             flat: true,
                             hideBottom: true
+                          },
+
+                          scopedSlots: {
+                            body: (props) => {
+                              const { row, colsMap } = props
+                              const { text, options } = row
+
+                              return [
+                                h(
+                                  'QTr',
+                                  {
+                                    props: { props }
+                                  },
+                                  [
+                                    h(
+                                      'QTd',
+                                      {
+                                        class: 'cursor-pointer',
+
+                                        props: {
+                                          col: colsMap.question,
+                                          row
+                                        },
+                                        on: {
+                                          click: () => (props.expand = !props.expand)
+                                        }
+                                      },
+                                      text
+                                    )
+                                  ]
+                                ),
+
+                                props.expand && h(
+                                  'QTr',
+                                  [
+                                    h(
+                                      'QTd',
+                                      [
+                                        h(
+                                          'QTable',
+                                          {
+                                            props: {
+                                              data: options,
+                                              columns: OPTION_COLUMNS,
+                                              dense: true,
+                                              square: true,
+                                              flat: true,
+                                              hideBottom: true
+                                            }
+                                          }
+                                        )
+                                      ]
+                                    )
+                                  ]
+                                )
+                              ]
+                            }
                           }
                         }
                       )
