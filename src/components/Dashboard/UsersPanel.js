@@ -25,6 +25,20 @@ const QUESTION_COLUMNS = [
   }
 ]
 
+const OPTION_COLUMNS = [
+  {
+    label: 'Ответы',
+    name: 'option',
+    align: 'left'
+  },
+  {
+    label: 'Голосование',
+    name: 'result',
+    align: 'right',
+    style: 'width: 75px'
+  }
+]
+
 Vue.component('UsersPanel', {
   methods: {
     buildUserName ({ username, fullname, city }) {
@@ -205,7 +219,7 @@ Vue.component('UsersPanel', {
                                             scopedSlots: {
                                               'body': (props) => {
                                                 const { row, colsMap } = props
-                                                const { text, option } = row
+                                                const { text, options, selected_option } = row
                                                 return [
                                                   h(
                                                     'QTr',
@@ -246,7 +260,64 @@ Vue.component('UsersPanel', {
                                                             row
                                                           }
                                                         },
-                                                        option.option
+                                                        [
+                                                          h(
+                                                            'QTable',
+                                                            {
+                                                              props: {
+                                                                data: options,
+                                                                columns: OPTION_COLUMNS,
+                                                                flat: true,
+                                                                dense: true,
+                                                                hideBottom: true,
+                                                                square: true
+                                                              },
+
+                                                              scopedSlots: {
+                                                                body: (props) => {
+                                                                  const { row, colsMap } = props
+                                                                  const { id, option } = row
+
+                                                                  console.log(props)
+
+                                                                  return h(
+                                                                    'QTr',
+                                                                    {
+                                                                      class: 'bg-grey-5',
+
+                                                                      props: { props }
+                                                                    },
+                                                                    [
+                                                                      h(
+                                                                        'QTd',
+                                                                        {
+                                                                          props: {
+                                                                            col: colsMap.option,
+                                                                            row
+                                                                          }
+                                                                        },
+                                                                        option
+                                                                      ),
+
+                                                                      h(
+                                                                        'QTd',
+                                                                        {
+                                                                          style: 'width: 75px; text-align: right',
+
+                                                                          props: {
+                                                                            col: colsMap.result,
+                                                                            row
+                                                                          }
+                                                                        },
+                                                                        (id === selected_option) ? '1' : '0'
+                                                                      ),
+                                                                    ]
+                                                                  )
+                                                                }
+                                                              }
+                                                            }
+                                                          )
+                                                        ]
                                                       )
                                                     ]
                                                   )
