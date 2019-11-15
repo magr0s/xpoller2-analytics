@@ -29,9 +29,15 @@ const OPTION_COLUMNS = [
     label: 'Голоса',
     name: 'votes',
     field: 'votes',
+    align: 'center',
+    style: 'width: 75px; background-color: #e0e0e0'
+  },
+  {
+    label: '%',
+    name: 'percent',
     align: 'right',
     style: 'width: 75px; background-color: #e0e0e0'
-  }
+  },
 ]
 
 Vue.component('PollsPanel', {
@@ -154,6 +160,20 @@ Vue.component('PollsPanel', {
                                               square: true,
                                               flat: true,
                                               hideBottom: true
+                                            },
+
+                                            scopedSlots: {
+                                              'body-cell-percent': (props) => {
+                                                const { row } = props
+                                                const sum = options.reduce((a, b) => (a + b.votes), 0)
+                                                const percentValue = row.votes !== 0 ? row.votes * 100 / sum : 0
+
+                                                return h(
+                                                  'QTd',
+                                                  { props: { props } },
+                                                  percentValue.toFixed(1)
+                                                )
+                                              }
                                             }
                                           }
                                         )
