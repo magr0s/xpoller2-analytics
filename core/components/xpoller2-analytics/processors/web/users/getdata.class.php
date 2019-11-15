@@ -62,8 +62,15 @@ class xAnalyticsWebUsersGetdataProcessor extends modUserGetListProcessor
       'uid' => $array['id']
     ))) {
       foreach ($answers as $answer) {
-        $question = $answer->getOne('Question')->toArray();
-        $question['option'] = $answer->getOne('Option')->toArray();
+        $questionObject = $answer->getOne('Question');
+        $options = $questionObject->getMany('Options');
+        $question = $questionObject->toArray();
+
+        foreach ($options as $option) {
+          $question['options'][] = $option->toArray();
+        }
+
+        $question['selected_option'] = $answer->oid;
 
         if ($poll = $this->modx->getObject('xpTest', array(
           'id'  => $question['tid']
