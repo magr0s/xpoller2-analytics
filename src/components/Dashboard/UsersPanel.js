@@ -41,9 +41,9 @@ const OPTION_COLUMNS = [
 
 Vue.component('UsersPanel', {
   methods: {
-    buildUserName ({ username, fullname, city }) {
-      if (fullname) {
-        let str = fullname
+    buildUserName ({ username, comment, city }) {
+      if (comment) {
+        let str = comment
 
         if (city) {
           str += ` - г. ${city}`
